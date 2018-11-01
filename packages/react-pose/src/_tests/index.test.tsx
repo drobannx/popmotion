@@ -1,9 +1,9 @@
 import React from 'react';
 import posed from '../posed';
 import PoseGroup from '../components/Transition/PoseGroup';
-import { render, cleanup } from 'react-testing-library'
+import { render, cleanup } from 'react-testing-library';
 
-afterEach(cleanup)
+afterEach(cleanup);
 
 const Parent = posed.div({
   init: { x: 10, transition: { duration: 30 } },
@@ -17,7 +17,7 @@ const Parent = posed.div({
   dynamicExit: {
     x: ({ x }) => x,
     transition: { duration: 30 }
-  },
+  }
 });
 
 const Child = posed.div({
@@ -33,7 +33,16 @@ const Child = posed.div({
   dynamicExitDuration: {
     y: 85,
     transition: ({ i }) => ({ duration: (i + 1) * 30 })
-  },
+  }
+});
+
+const First = posed.div({
+  enter: { opacity: 1, transition: { duration: 30 } },
+  exit: { opacity: 0, transition: { duration: 30 } }
+});
+const Second = posed.div({
+  enter: { opacity: 1, transition: { duration: 30 } },
+  exit: { opacity: 0, transition: { duration: 30 } }
 });
 
 test('posed: initial state - named initial pose', () => {
@@ -227,41 +236,72 @@ test('PoseGroup: onRest fires when exit pose starts during exit pose', () => {
   return new Promise(resolve => {
     class Group extends React.Component {
       state = {
-        list: range(6),
-      }
+        list: range(6)
+      };
 
       componentDidMount() {
         this.pop2();
       }
 
       pop2 = () => {
-        const { list } = this.state
+        const { list } = this.state;
 
         if (!list.length) {
           return;
         }
 
         this.setState({ list: list.slice(0, -2) });
-      }
+      };
 
       render() {
         return (
-          <PoseGroup
-            exitPose="dynamicExitDuration"
-            onRest={resolve}
-          >
-            {this.state.list.map(i =>
-              <Child
-                i={i}
-                key={i}
-                onPoseComplete={this.pop2}
-              />)}
+          <PoseGroup exitPose="dynamicExitDuration" onRest={resolve}>
+            {this.state.list.map(i => (
+              <Child i={i} key={i} onPoseComplete={this.pop2} />
+            ))}
           </PoseGroup>
-        )
+        );
       }
     }
 
     const wrapper = render(<Group />);
+  });
+});
+
+test('PoseGroup: Works correctly in StrictMode', () => {
+  let first = 0;
+  let second = 0;
+
+  return new Promise(resolve => {
+    const Group = ({ isFirst = true }) => (
+      <React.StrictMode>
+        <PoseGroup>
+          {isFirst ? (
+            <First
+              key="first"
+              onValueChange={{ opacity: o => (first = o) }}
+              onPoseComplete={() => {
+                expect(first).toBe(0);
+                expect(second).toBe(1);
+              }}
+            />
+          ) : (
+            <Second
+              key="second"
+              onValueChange={{ opacity: o => (second = o) }}
+              onPoseComplete={() => {
+                expect(first).toBe(0);
+                expect(second).toBe(1);
+                resolve();
+              }}
+            />
+          )}
+        </PoseGroup>
+      </React.StrictMode>
+    );
+
+    let result = render(<Group />);
+    result.rerender(<Group isFirst={false} />);
   });
 });
 
@@ -395,20 +435,14 @@ test('PoseGroup: Provides group props to children on mount', () => {
   ))({});
 
   const Group = () => (
-    <PoseGroup
-      animateOnMount
-      text="foo bar"
-    >
-      <ChildWithGroupProps
-        data-testid="child"
-        key="a"
-      />
+    <PoseGroup animateOnMount text="foo bar">
+      <ChildWithGroupProps data-testid="child" key="a" />
     </PoseGroup>
   );
 
   const { getByTestId, debug } = render(<Group />);
-  const child = getByTestId('child')
-  expect(child.textContent).toBe('text: foo bar')
+  const child = getByTestId('child');
+  expect(child.textContent).toBe('text: foo bar');
 });
 
 test('PoseGroup: `onPoseComplete` gets called for leaving child', () => {
@@ -421,7 +455,7 @@ test('PoseGroup: `onPoseComplete` gets called for leaving child', () => {
             onPoseComplete={pose => {
               if (pose === 'enter') {
                 rerender(<Group isVisible={false} />);
-                return
+                return;
               }
 
               expect(pose).toBe('exit');
