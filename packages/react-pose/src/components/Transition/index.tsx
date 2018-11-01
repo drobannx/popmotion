@@ -52,6 +52,7 @@ class Transition extends React.Component<Props, State> {
           finishedLeaving: {},
           displayedChildren: targetChildren
         };
+    console.log('TEST');
 
     this.setState(newState as State, onRest);
   }

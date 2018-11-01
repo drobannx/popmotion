@@ -274,30 +274,28 @@ test('PoseGroup: Works correctly in StrictMode', () => {
 
   return new Promise(resolve => {
     const Group = ({ isFirst = true }) => (
-      <React.StrictMode>
-        <PoseGroup>
-          {isFirst ? (
-            <First
-              key="first"
-              onValueChange={{ opacity: o => (first = o) }}
-              onPoseComplete={() => {
-                expect(first).toBe(0);
-                expect(second).toBe(1);
-              }}
-            />
-          ) : (
-            <Second
-              key="second"
-              onValueChange={{ opacity: o => (second = o) }}
-              onPoseComplete={() => {
-                expect(first).toBe(0);
-                expect(second).toBe(1);
-                resolve();
-              }}
-            />
-          )}
-        </PoseGroup>
-      </React.StrictMode>
+      <PoseGroup>
+        {isFirst ? (
+          <First
+            key="first"
+            onValueChange={{ opacity: o => (first = o) }}
+            onPoseComplete={() => {
+              expect(first).toBe(0);
+              expect(second).toBe(1);
+            }}
+          />
+        ) : (
+          <Second
+            key="second"
+            onValueChange={{ opacity: o => (second = o) }}
+            onPoseComplete={() => {
+              expect(first).toBe(0);
+              expect(second).toBe(1);
+              resolve();
+            }}
+          />
+        )}
+      </PoseGroup>
     );
 
     let result = render(<Group />);
